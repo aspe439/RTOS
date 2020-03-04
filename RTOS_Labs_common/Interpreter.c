@@ -188,5 +188,3 @@ void Interpreter(void){
 //	}
 //	things[0] = '\0'; //clears the command buffer
 }
-
-

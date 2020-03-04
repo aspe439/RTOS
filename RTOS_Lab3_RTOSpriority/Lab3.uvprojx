@@ -388,6 +388,11 @@
               <FilePath>.\startup.s</FilePath>
             </File>
             <File>
+              <FileName>OS.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\RTOS_Labs_common\OS.c</FilePath>
+            </File>
+            <File>
               <FileName>Interpreter.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\RTOS_Labs_common\Interpreter.c</FilePath>
@@ -473,9 +478,9 @@
               <FilePath>..\RTOS_Labs_common\ADC.c</FilePath>
             </File>
             <File>
-              <FileName>OS_sleep_sema.c</FileName>
+              <FileName>Timer1A.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\OS_sleep_sema.c</FilePath>
+              <FilePath>..\inc\Timer1A.c</FilePath>
             </File>
             <File>
               <FileName>Timer2A.c</FileName>

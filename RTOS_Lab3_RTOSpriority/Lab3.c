@@ -109,7 +109,7 @@ void DAS(void){
   uint32_t input;  
 	unsigned static long LastTime;  // time at previous ADC sample
   uint32_t thisTime;              // time at current ADC sample
-  long jitter;                    // time between measured and expected, in us
+//  long jitter;                    // time between measured and expected, in us
 	
   if(NumSamples < RUNLENGTH){   // finite time run
     PD0 ^= 0x01;
@@ -677,7 +677,7 @@ void Thread7(void){  // foreground thread
 #define counts1us 10    // number of OS_Time counts per 1us
 void TaskA(void){       // called every {1000, 2990us} in background
 	unsigned static long LastTime = 0;  // time at previous ADC sample
-  uint32_t thisTime;              // time at current ADC sample
+//  uint32_t thisTime;              // time at current ADC sample
 	OS_jittermeasurement(TIME_1MS,JitterHistogram, &LastTime);
   PD1 = 0x02;      // debugging profile  
   CountA++;

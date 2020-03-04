@@ -29,11 +29,8 @@
 /**
  * \brief Semaphore structure. Feel free to change the type of semaphore, there are lots of good solutions
  */  
-struct  Sema4{
-  int32_t Value;   // >0 means free, otherwise means busy        
-// add other components here, if necessary to implement blocking
-};
-typedef struct Sema4 Sema4Type;
+
+
 
 struct tcb{
   int32_t *sp;       // pointer to stack (valid for threads not running
@@ -41,9 +38,23 @@ struct tcb{
 	uint32_t Id;
 	uint32_t SleepTime;
 	uint32_t Priority;
-	uint32_t Blocked;
+	uint32_t *Blocked;
 };
 typedef struct tcb tcbType;
+
+typedef struct linked_list ls;
+	
+struct linked_list{
+	void * pointer;
+	struct linked_list* next;
+};
+
+struct  Sema4{
+  int32_t Value;   // >0 means free, otherwise means busy        
+	ls *blocked;
+// add other components here, if necessary to implement blocking
+};
+typedef struct Sema4 Sema4Type;
 
 /**
  * @details  Initialize operating system, disable interrupts until OS_Launch.
