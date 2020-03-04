@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 
 
@@ -399,3 +400,406 @@ Symbol: RunPt
 
 2 symbols
 352 symbols in table
+=======
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ;/******************************************************
+                       ***********************/
+    2 00000000         ;/* OSasm.s: low-level OS commands, written in assembly 
+                                             */
+    3 00000000         ;/* derived from uCOS-II                                
+                                             */
+    4 00000000         ;/******************************************************
+                       ***********************/
+    5 00000000         ;Jonathan Valvano, OS Lab2/3/4, 1/12/20
+    6 00000000         ;Students will implement these functions as part of EE44
+                       5M/EE380L.12 Lab
+    7 00000000         
+    8 00000000                 AREA             |.text|, CODE, READONLY, ALIGN=
+2
+    9 00000000                 THUMB
+   10 00000000                 REQUIRE8
+   11 00000000                 PRESERVE8
+   12 00000000         
+   13 00000000                 EXTERN           RunPt       ; currently running
+                                                             thread
+   14 00000000                 EXTERN           NextPt      ; Next active threa
+                                                            d
+   15 00000000         
+   16 00000000                 EXPORT           StartOS
+   17 00000000                 EXPORT           ContextSwitch
+   18 00000000                 EXPORT           PendSV_Handler
+   19 00000000                 EXPORT           OS_DisableInterrupts
+   20 00000000                 EXPORT           OS_EnableInterrupts
+   21 00000000         
+   22 00000000         
+   23 00000000 E000ED04 
+                       NVIC_INT_CTRL
+                               EQU              0xE000ED04  ; Interrupt control
+                                                             state register.
+   24 00000000 E000ED22 
+                       NVIC_SYSPRI14
+                               EQU              0xE000ED22  ; PendSV priority r
+                                                            egister (position 1
+                                                            4).
+   25 00000000 E000ED23 
+                       NVIC_SYSPRI15
+                               EQU              0xE000ED23  ; Systick priority 
+                                                            register (position 
+                                                            15).
+   26 00000000 000000EF 
+                       NVIC_LEVEL14
+                               EQU              0xEF        ; Systick priority 
+                                                            value (second lowes
+                                                            t).
+   27 00000000 000000FF 
+                       NVIC_LEVEL15
+                               EQU              0xFF        ; PendSV priority v
+                                                            alue (lowest).
+   28 00000000 10000000 
+                       NVIC_PENDSVSET
+                               EQU              0x10000000  ; Value to trigger 
+                                                            PendSV exception.
+   29 00000000         
+   30 00000000         
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   31 00000000         OS_DisableInterrupts
+   32 00000000 B672            CPSID            I
+   33 00000002 4770            BX               LR
+   34 00000004         
+   35 00000004         
+   36 00000004         OS_EnableInterrupts
+   37 00000004 B662            CPSIE            I
+   38 00000006 4770            BX               LR
+   39 00000008         
+   40 00000008         StartOS
+   41 00000008         ; put your code here
+   42 00000008         ; LDR  R0, =NVIC_LEVEL15
+   43 00000008         ; LDR  R2, =NVIC_SYSPRI14
+   44 00000008         ; STR  R0, [R2]
+   45 00000008         ; LDR  R0, =NVIC_LEVEL14
+   46 00000008         ; LDR  R2, =NVIC_SYSPRI15
+   47 00000008         ; STR  R0, [R2]
+   48 00000008 4813            LDR              R0, =RunPt  ; currently running
+                                                             thread. the addres
+                                                            s of Runpt
+   49 0000000A 6802            LDR              R2, [R0]    ; R2 = value of Run
+                                                            Pt
+   50 0000000C F8D2 D000       LDR              SP, [R2]    ; new thread SP; SP
+                                                             = RunPt->stackPoin
+                                                            ter; What is this?
+   51 00000010 E8BD 0FF0       POP              {R4-R11}    ; restore regs r4-1
+                                                            1
+   52 00000014 BC0F            POP              {R0-R3}     ; restore regs r0-3
+                                                            
+   53 00000016 F85D CB04       POP              {R12}
+   54 0000001A F85D EB04       POP              {LR}        ; discard LR from i
+                                                            nitial stack
+   55 0000001E F85D EB04       POP              {LR}        ; start location PC
+                                                            
+   56 00000022 BC02            POP              {R1}        ; discard PSR. Beca
+                                                            use now we don't ne
+                                                            ed PSR.
+   57 00000024 B662            CPSIE            I           ; Enable interrupts
+                                                             at processor level
+                                                            
+   58 00000026         
+   59 00000026 4770            BX               LR          ; start first threa
+                                                            d
+   60 00000028         
+   61 00000028         OSStartHang
+   62 00000028 E7FE            B                OSStartHang ; Should never get 
+                                                            here
+   63 0000002A         
+   64 0000002A         
+   65 0000002A         ;*******************************************************
+                       *************************************************
+   66 0000002A         ;                               PERFORM A CONTEXT SWITCH
+                        (From task level)
+   67 0000002A         ;                                           void Context
+                       Switch(void)
+   68 0000002A         ;
+   69 0000002A         ; Note(s) : 1) ContextSwitch() is called when OS wants t
+                       o perform a task context switch.  This function
+   70 0000002A         ;              triggers the PendSV exception which is wh
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+                       ere the real work is done.
+   71 0000002A         ;*******************************************************
+                       *************************************************
+   72 0000002A         
+   73 0000002A         ContextSwitch
+   74 0000002A         ; edit this code
+   75 0000002A 480C            LDR              R0, =NVIC_INT_CTRL
+   76 0000002C F04F 5180       LDR              R1, =NVIC_PENDSVSET
+   77 00000030 6001            STR              R1, [R0]
+   78 00000032 4770            BX               LR
+   79 00000034         
+   80 00000034         
+   81 00000034         ;*******************************************************
+                       *************************************************
+   82 00000034         ;                                         HANDLE PendSV 
+                       EXCEPTION
+   83 00000034         ;                                     void OS_CPU_PendSV
+                       Handler(void)
+   84 00000034         ;
+   85 00000034         ; Note(s) : 1) PendSV is used to cause a context switch.
+                         This is a recommended method for performing
+   86 00000034         ;              context switches with Cortex-M.  This is 
+                       because the Cortex-M3 auto-saves half of the
+   87 00000034         ;              processor context on any exception, and r
+                       estores same on return from exception.  So only
+   88 00000034         ;              saving of R4-R11 is required and fixing u
+                       p the stack pointers.  Using the PendSV exception
+   89 00000034         ;              this way means that context saving and re
+                       storing is identical whether it is initiated from
+   90 00000034         ;              a thread or occurs due to an interrupt or
+                        exception.
+   91 00000034         ;
+   92 00000034         ;           2) Pseudo-code is:
+   93 00000034         ;              a) Get the process SP, if 0 then skip (go
+                       to d) the saving part (first context switch);
+   94 00000034         ;              b) Save remaining regs r4-r11 on process 
+                       stack;
+   95 00000034         ;              c) Save the process SP in its TCB, OSTCBC
+                       ur->OSTCBStkPtr = SP;
+   96 00000034         ;              d) Call OSTaskSwHook();
+   97 00000034         ;              e) Get current high priority, OSPrioCur =
+                        OSPrioHighRdy;
+   98 00000034         ;              f) Get current ready thread TCB, OSTCBCur
+                        = OSTCBHighRdy;
+   99 00000034         ;              g) Get new process SP from TCB, SP = OSTC
+                       BHighRdy->OSTCBStkPtr;
+  100 00000034         ;              h) Restore R4-R11 from new process stack;
+                       
+  101 00000034         ;              i) Perform exception return which will re
+                       store remaining context.
+  102 00000034         ;
+  103 00000034         ;           3) On entry into PendSV handler:
+  104 00000034         ;              a) The following have been saved on the p
+                       rocess stack (by processor):
+  105 00000034         ;                 xPSR, PC, LR, R12, R0-R3
+  106 00000034         ;              b) Processor mode is switched to Handler 
+                       mode (from Thread mode)
+  107 00000034         ;              c) Stack is Main stack (switched from Pro
+                       cess stack)
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+  108 00000034         ;              d) OSTCBCur      points to the OS_TCB of 
+                       the task to suspend
+  109 00000034         ;                 OSTCBHighRdy  points to the OS_TCB of 
+                       the task to resume
+  110 00000034         ;
+  111 00000034         ;           4) Since PendSV is set to lowest priority in
+                        the system (by OSStartHighRdy() above), we
+  112 00000034         ;              know that it will only be run when no oth
+                       er exception or interrupt is active, and
+  113 00000034         ;              therefore safe to assume that context bei
+                       ng switched out was using the process stack (PSP).
+  114 00000034         ;*******************************************************
+                       *************************************************
+  115 00000034         
+  116 00000034         PendSV_Handler
+  117 00000034         ; put your code here
+  118 00000034 B672            CPSID            I           ; disable interrupt
+                                                            
+  119 00000036 E92D 0FF0       PUSH             {R4-R11}    ; push remaining re
+                                                            gisters onto the st
+                                                            ack
+  120 0000003A 4807            LDR              R0, =RunPt  ; R0=pointer to Run
+                                                            Pt, old
+  121 0000003C 6801            LDR              R1, [R0]    ; R1 = RunPt
+  122 0000003E F8C1 D000       STR              SP, [R1]    ; Save SP into TCB
+  123 00000042 4807            LDR              R0, =NextPt ; NextPt is the nex
+                                                            t task that is read
+                                                            y
+  124 00000044 6801            LDR              R1, [R0]    ; Load NextPt into 
+                                                            R1
+  125 00000046 4804            LDR              R0, =RunPt  ; R0=pointer to Run
+                                                            Pt, old
+  126 00000048 6001            STR              R1, [R0]
+  127 0000004A F8D1 D000       LDR              SP, [R1]
+  128 0000004E E8BD 0FF0       POP              {R4-R11}
+  129 00000052 B662            CPSIE            I           ; enable interrupt
+  130 00000054 4770            BX               LR          ; Exception return 
+                                                            will restore remain
+                                                            ing context
+  131 00000056         ; Restore R0-R3,R12,LR,PC,PSR automatically beacuse it i
+                       s an interrupt.
+  132 00000056         
+  133 00000056         
+  134 00000056         
+  135 00000056 00 00           ALIGN
+  136 00000058                 END
+              00000000 
+              E000ED04 
+              00000000 
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4 --apcs=interw
+ork --depend=.\osasm.d -o.\osasm.o -I.\RTE\_Lab3 -IC:\Users\Zhen\AppData\Local\
+Arm\Packs\ARM\CMSIS\5.6.0\CMSIS\Core\Include -IC:\Users\Zhen\AppData\Local\Arm\
+Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123 --predefine="__EVAL SETA 1" --
+predefine="__MICROLIB SETA 1" --predefine="__UVISION_VERSION SETA 529" --predef
+ine="_RTE_ SETA 1" --predefine="TM4C123GH6PM SETA 1" --list=.\osasm.lst ..\RTOS
+_Labs_common\osasm.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 8 in file ..\RTOS_Labs_common\osasm.s
+   Uses
+      None
+Comment: .text unused
+ContextSwitch 0000002A
+
+Symbol: ContextSwitch
+   Definitions
+      At line 73 in file ..\RTOS_Labs_common\osasm.s
+   Uses
+      At line 17 in file ..\RTOS_Labs_common\osasm.s
+Comment: ContextSwitch used once
+OSStartHang 00000028
+
+Symbol: OSStartHang
+   Definitions
+      At line 61 in file ..\RTOS_Labs_common\osasm.s
+   Uses
+      At line 62 in file ..\RTOS_Labs_common\osasm.s
+Comment: OSStartHang used once
+OS_DisableInterrupts 00000000
+
+Symbol: OS_DisableInterrupts
+   Definitions
+      At line 31 in file ..\RTOS_Labs_common\osasm.s
+   Uses
+      At line 19 in file ..\RTOS_Labs_common\osasm.s
+Comment: OS_DisableInterrupts used once
+OS_EnableInterrupts 00000004
+
+Symbol: OS_EnableInterrupts
+   Definitions
+      At line 36 in file ..\RTOS_Labs_common\osasm.s
+   Uses
+      At line 20 in file ..\RTOS_Labs_common\osasm.s
+Comment: OS_EnableInterrupts used once
+PendSV_Handler 00000034
+
+Symbol: PendSV_Handler
+   Definitions
+      At line 116 in file ..\RTOS_Labs_common\osasm.s
+   Uses
+      At line 18 in file ..\RTOS_Labs_common\osasm.s
+Comment: PendSV_Handler used once
+StartOS 00000008
+
+Symbol: StartOS
+   Definitions
+      At line 40 in file ..\RTOS_Labs_common\osasm.s
+   Uses
+      At line 16 in file ..\RTOS_Labs_common\osasm.s
+Comment: StartOS used once
+7 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Absolute symbols
+
+NVIC_INT_CTRL E000ED04
+
+Symbol: NVIC_INT_CTRL
+   Definitions
+      At line 23 in file ..\RTOS_Labs_common\osasm.s
+   Uses
+      At line 75 in file ..\RTOS_Labs_common\osasm.s
+Comment: NVIC_INT_CTRL used once
+NVIC_LEVEL14 000000EF
+
+Symbol: NVIC_LEVEL14
+   Definitions
+      At line 26 in file ..\RTOS_Labs_common\osasm.s
+   Uses
+      None
+Comment: NVIC_LEVEL14 unused
+NVIC_LEVEL15 000000FF
+
+Symbol: NVIC_LEVEL15
+   Definitions
+      At line 27 in file ..\RTOS_Labs_common\osasm.s
+   Uses
+      None
+Comment: NVIC_LEVEL15 unused
+NVIC_PENDSVSET 10000000
+
+Symbol: NVIC_PENDSVSET
+   Definitions
+      At line 28 in file ..\RTOS_Labs_common\osasm.s
+   Uses
+      At line 76 in file ..\RTOS_Labs_common\osasm.s
+Comment: NVIC_PENDSVSET used once
+NVIC_SYSPRI14 E000ED22
+
+Symbol: NVIC_SYSPRI14
+   Definitions
+      At line 24 in file ..\RTOS_Labs_common\osasm.s
+   Uses
+      None
+Comment: NVIC_SYSPRI14 unused
+NVIC_SYSPRI15 E000ED23
+
+Symbol: NVIC_SYSPRI15
+   Definitions
+      At line 25 in file ..\RTOS_Labs_common\osasm.s
+   Uses
+      None
+Comment: NVIC_SYSPRI15 unused
+6 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+External symbols
+
+NextPt 00000000
+
+Symbol: NextPt
+   Definitions
+      At line 14 in file ..\RTOS_Labs_common\osasm.s
+   Uses
+      At line 123 in file ..\RTOS_Labs_common\osasm.s
+Comment: NextPt used once
+RunPt 00000000
+
+Symbol: RunPt
+   Definitions
+      At line 13 in file ..\RTOS_Labs_common\osasm.s
+   Uses
+      At line 48 in file ..\RTOS_Labs_common\osasm.s
+      At line 120 in file ..\RTOS_Labs_common\osasm.s
+      At line 125 in file ..\RTOS_Labs_common\osasm.s
+
+2 symbols
+352 symbols in table
+>>>>>>> 91491d35bebd4eebaf701e4c39376f8dec5ccffe

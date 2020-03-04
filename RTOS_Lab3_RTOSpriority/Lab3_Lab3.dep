@@ -1,7 +1,11 @@
 Dependencies for Project 'Lab3', Target 'Lab3': (DO NOT MODIFY !)
 CompilerVersion: 5060750::V5.06 update 6 (build 750)::ARMCC
 F (.\startup.s)(0x5E0B743C)(--cpu Cortex-M4 --pd "__EVAL SETA 1" -g --apcs=interwork --pd "__MICROLIB SETA 1"-I.\RTE\_Lab3-IC:\Users\Zhen\AppData\Local\Arm\Packs\ARM\CMSIS\5.6.0\CMSIS\Core\Include-IC:\Users\Zhen\AppData\Local\Arm\Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123--pd "__UVISION_VERSION SETA 529" --pd "_RTE_ SETA 1" --pd "TM4C123GH6PM SETA 1"--list .\startup.lst --xref -o .\startup.o --depend .\startup.d)
+<<<<<<< HEAD
+F (..\RTOS_Labs_common\OS.c)(0x5E603157)(--c99 -c --cpu Cortex-M4 -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork --split_sections --signed_chars -I .. -I ..\..\..-I.\RTE\_Lab3-IC:\Users\Zhen\AppData\Local\Arm\Packs\ARM\CMSIS\5.6.0\CMSIS\Core\Include-IC:\Users\Zhen\AppData\Local\Arm\Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123-D__UVISION_VERSION="529" -D_RTE_ -DTM4C123GH6PM -Drvmdk -DPART_LM4F120H5QR-o .\os.o --omf_browse .\os.crf --depend .\os.d)
+=======
 F (..\RTOS_Labs_common\OS.c)(0x5E601FEE)(--c99 -c --cpu Cortex-M4 -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork --split_sections --signed_chars -I .. -I ..\..\..-I.\RTE\_Lab3-IC:\Users\Zhen\AppData\Local\Arm\Packs\ARM\CMSIS\5.6.0\CMSIS\Core\Include-IC:\Users\Zhen\AppData\Local\Arm\Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123-D__UVISION_VERSION="529" -D_RTE_ -DTM4C123GH6PM -Drvmdk -DPART_LM4F120H5QR-o .\os.o --omf_browse .\os.crf --depend .\os.d)
+>>>>>>> 91491d35bebd4eebaf701e4c39376f8dec5ccffe
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x5D9B96F8)
 I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x5D9B96FA)
 I (..\RTOS_Labs_common\../inc/tm4c123gh6pm.h)(0x5388C2DA)
@@ -11,7 +15,11 @@ I (..\RTOS_Labs_common\../inc/PLL.h)(0x5E10D0A6)
 I (..\RTOS_Labs_common\../inc/LaunchPad.h)(0x5E10D0A6)
 I (..\RTOS_Labs_common\../inc/Timer4A.h)(0x5E0D1AFC)
 I (..\RTOS_Labs_common\../inc/WTimer0A.h)(0x5E17928E)
+<<<<<<< HEAD
+I (..\RTOS_Labs_common\../RTOS_Labs_common/OS.h)(0x5E602E26)
+=======
 I (..\RTOS_Labs_common\../RTOS_Labs_common/OS.h)(0x5E5E8219)
+>>>>>>> 91491d35bebd4eebaf701e4c39376f8dec5ccffe
 I (..\RTOS_Labs_common\../RTOS_Labs_common/ST7735.h)(0x5E1B402E)
 I (..\RTOS_Labs_common\../inc/ADCT0ATrigger.h)(0x5E13FDA0)
 I (..\RTOS_Labs_common\../RTOS_Labs_common/UART0int.h)(0x5E35C3AA)
@@ -22,7 +30,11 @@ F (..\RTOS_Labs_common\Interpreter.c)(0x5E602005)(--c99 -c --cpu Cortex-M4 -D__E
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x5D9B96F8)
 I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x5D9B96F8)
 I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x5D9B96FA)
+<<<<<<< HEAD
+I (..\RTOS_Labs_common\../RTOS_Labs_common/OS.h)(0x5E602E26)
+=======
 I (..\RTOS_Labs_common\../RTOS_Labs_common/OS.h)(0x5E5E8219)
+>>>>>>> 91491d35bebd4eebaf701e4c39376f8dec5ccffe
 I (..\RTOS_Labs_common\../RTOS_Labs_common/ST7735.h)(0x5E1B402E)
 I (..\RTOS_Labs_common\../inc/ADCT0ATrigger.h)(0x5E13FDA0)
 I (..\RTOS_Labs_common\../inc/ADCSWTrigger.h)(0x5E1FCD86)
@@ -44,7 +56,11 @@ I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x5D9B96F8)
 I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x5D9B96F8)
 I (..\RTOS_Labs_common\../inc/tm4c123gh6pm.h)(0x5388C2DA)
 I (..\RTOS_Labs_common\../RTOS_Labs_common/ST7735.h)(0x5E1B402E)
+<<<<<<< HEAD
+I (..\RTOS_Labs_common\../RTOS_Labs_common/OS.h)(0x5E602E26)
+=======
 I (..\RTOS_Labs_common\../RTOS_Labs_common/OS.h)(0x5E5E8219)
+>>>>>>> 91491d35bebd4eebaf701e4c39376f8dec5ccffe
 I (..\RTOS_Labs_common\../RTOS_Labs_common/eDisk.h)(0x5E1B402E)
 F (..\inc\ADCSWTrigger.c)(0x5E1FCD86)(--c99 -c --cpu Cortex-M4 -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork --split_sections --signed_chars -I .. -I ..\..\..-I.\RTE\_Lab3-IC:\Users\Zhen\AppData\Local\Arm\Packs\ARM\CMSIS\5.6.0\CMSIS\Core\Include-IC:\Users\Zhen\AppData\Local\Arm\Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123-D__UVISION_VERSION="529" -D_RTE_ -DTM4C123GH6PM -Drvmdk -DPART_LM4F120H5QR-o .\adcswtrigger.o --omf_browse .\adcswtrigger.crf --depend .\adcswtrigger.d)
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x5D9B96F8)
@@ -65,7 +81,11 @@ I (..\RTOS_Labs_common\../RTOS_Labs_common/eDisk.h)(0x5E1B402E)
 F (..\RTOS_Labs_common\efile.c)(0x5E233E2A)(--c99 -c --cpu Cortex-M4 -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork --split_sections --signed_chars -I .. -I ..\..\..-I.\RTE\_Lab3-IC:\Users\Zhen\AppData\Local\Arm\Packs\ARM\CMSIS\5.6.0\CMSIS\Core\Include-IC:\Users\Zhen\AppData\Local\Arm\Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123-D__UVISION_VERSION="529" -D_RTE_ -DTM4C123GH6PM -Drvmdk -DPART_LM4F120H5QR-o .\efile.o --omf_browse .\efile.crf --depend .\efile.d)
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x5D9B96F8)
 I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x5D9B96F8)
+<<<<<<< HEAD
+I (..\RTOS_Labs_common\../RTOS_Labs_common/OS.h)(0x5E602E26)
+=======
 I (..\RTOS_Labs_common\../RTOS_Labs_common/OS.h)(0x5E5E8219)
+>>>>>>> 91491d35bebd4eebaf701e4c39376f8dec5ccffe
 I (..\RTOS_Labs_common\../RTOS_Labs_common/eDisk.h)(0x5E1B402E)
 I (..\RTOS_Labs_common\../RTOS_Labs_common/eFile.h)(0x5E1B402E)
 I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x5D9B96FA)
@@ -93,7 +113,11 @@ I (../RTOS_Labs_common/UART0int.h)(0x5E35C3AA)
 I (../RTOS_Labs_common/ADC.h)(0x5E251240)
 I (../inc/ADCT0ATrigger.h)(0x5E13FDA0)
 I (../inc/IRDistance.h)(0x5E1FCD2C)
+<<<<<<< HEAD
+I (../RTOS_Labs_common/OS.h)(0x5E602E26)
+=======
 I (../RTOS_Labs_common/OS.h)(0x5E5E8219)
+>>>>>>> 91491d35bebd4eebaf701e4c39376f8dec5ccffe
 I (../RTOS_Labs_common/Interpreter.h)(0x5E5D9F28)
 I (../RTOS_Labs_common/ST7735.h)(0x5E1B402E)
 F (..\RTOS_Labs_common\ADC.c)(0x5E5D9F2C)(--c99 -c --cpu Cortex-M4 -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork --split_sections --signed_chars -I .. -I ..\..\..-I.\RTE\_Lab3-IC:\Users\Zhen\AppData\Local\Arm\Packs\ARM\CMSIS\5.6.0\CMSIS\Core\Include-IC:\Users\Zhen\AppData\Local\Arm\Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123-D__UVISION_VERSION="529" -D_RTE_ -DTM4C123GH6PM -Drvmdk -DPART_LM4F120H5QR-o .\adc.o --omf_browse .\adc.crf --depend .\adc.d)
