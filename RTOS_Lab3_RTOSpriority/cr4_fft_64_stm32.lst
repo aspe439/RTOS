@@ -644,8 +644,8 @@ xb4be,0x0c7c
   304 000002CE                 END
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4 --apcs=interw
 ork --depend=.\cr4_fft_64_stm32.d -o.\cr4_fft_64_stm32.o -I.\RTE\_Lab3 -IC:\Use
-rs\xuz10\AppData\Local\Arm\Packs\ARM\CMSIS\5.6.0\CMSIS\Core\Include -IC:\Users\
-xuz10\AppData\Local\Arm\Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123 --pred
+rs\aosun\AppData\Local\Arm\Packs\ARM\CMSIS\5.6.0\CMSIS\Core\Include -IC:\Users\
+aosun\AppData\Local\Arm\Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123 --pred
 efine="__EVAL SETA 1" --predefine="__MICROLIB SETA 1" --predefine="__UVISION_VE
 RSION SETA 529" --predefine="_RTE_ SETA 1" --predefine="TM4C123GH6PM SETA 1" --
 
@@ -730,13 +730,13 @@ Symbol: NPT
    Definitions
       At line 46 in file ..\inc\cr4_fft_64_stm32.s
    Uses
-      At line 135 in macro ÉD ÉD@ÉD`ÉD
+      At line 135 in macro BUTFLY4ZERO_OPT
       at line 223 in file ..\inc\cr4_fft_64_stm32.s
-      At line 137 in macro ÉD ÉD@ÉD`ÉD
+      At line 137 in macro BUTFLY4ZERO_OPT
       at line 223 in file ..\inc\cr4_fft_64_stm32.s
-      At line 139 in macro ÉD ÉD@ÉD`ÉD
+      At line 139 in macro BUTFLY4ZERO_OPT
       at line 223 in file ..\inc\cr4_fft_64_stm32.s
-      At line 141 in macro ÉD ÉD@ÉD`ÉD
+      At line 141 in macro BUTFLY4ZERO_OPT
       at line 223 in file ..\inc\cr4_fft_64_stm32.s
 
 1 symbol

@@ -27,9 +27,11 @@
 
 // Performance Measurements 
 int32_t MaxJitter;             // largest time jitter between interrupts in usec
+int32_t MaxJitter2;             // largest time jitter between interrupts in usec
 #define JITTERSIZE 64
 uint32_t const JitterSize=JITTERSIZE;
 uint32_t JitterHistogram[JITTERSIZE]={0,};
+uint32_t JitterHistogram2[JITTERSIZE]={0,};
 static uint32_t time = 0; // used to track system time
 
 extern void SW1Push(void);
@@ -39,7 +41,8 @@ void OS_DisableInterrupts(void); // Disable interrupts
 void OS_EnableInterrupts(void);  // Enable interrupts
 void StartOS(void);
 void ContextSwitch(void);
-void EdgeCounterPortF_Init(void (*task)(void));
+void EdgeCounterPortF4_Init(void (*task)(void));
+void EdgeCounterPortF0_Init(void(*task)(void));
 
 
 #define NUMTHREADS  8        // maximum number of threads
@@ -51,7 +54,7 @@ extern uint32_t NumCreated;   // number of foreground threads created
 tcbType tcbs[NUMTHREADS];
 tcbType *RunPt;
 tcbType *NextPt;
-AddIndexFifo(os, 16, uint32_t, 1, 0)
+
 //tcbPtr RunPt;
 int32_t Stacks[NUMTHREADS][STACKSIZE];
 Sema4Type ST_sema;
@@ -308,14 +311,22 @@ int OS_AddPeriodicThread(void(*task)(void),
 
 
 /*----------------------------------------------------------------------------
-  PF1 Interrupt Handler
+  PF0 and PF4 Interrupt Handler
  *----------------------------------------------------------------------------*/
-void  (*GPIOHandlerFunction)(void);
+void  (*GPIOF4HandlerFunction)(void);
+void  (*GPIOF0HandlerFunction)(void);
 void GPIOPortF_Handler(void){
 	long sr = StartCritical();
+	if((GPIO_PORTF_RIS_R&0x10)==0x10){
+	(*GPIOF4HandlerFunction)();
 	GPIO_PORTF_ICR_R = 0x10;      // acknowledge flag4
   FallingEdges = FallingEdges + 1;
-	(*GPIOHandlerFunction)();
+	}
+	if((GPIO_PORTF_RIS_R&0x01)==0x01){
+	(*GPIOF0HandlerFunction)();
+	GPIO_PORTF_ICR_R = 0x01;      // acknowledge flag4
+  FallingEdges = FallingEdges + 1;
+	}
 	EndCritical(sr);
 }
 //******** OS_AddSW1Task *************** 
@@ -333,7 +344,7 @@ void GPIOPortF_Handler(void){
 //           determines the relative priority of these four threads
 int OS_AddSW1Task(void(*task)(void), uint32_t priority){
   // put Lab 2 (and beyond) solution here
-	EdgeCounterPortF_Init(task);
+	EdgeCounterPortF4_Init(task);
   return 0; // replace this line with solution
 };
 
@@ -352,7 +363,7 @@ int OS_AddSW1Task(void(*task)(void), uint32_t priority){
 //           determines the relative priority of these four threads
 int OS_AddSW2Task(void(*task)(void), uint32_t priority){
   // put Lab 2 (and beyond) solution here
-    
+  EdgeCounterPortF0_Init(task);  
   return 0; // replace this line with solution
 };
 
@@ -420,6 +431,7 @@ void OS_Suspend(void){
 
 };
   
+AddIndexFifo(os, 2, uint32_t, 1, 0)
 // ******** OS_Fifo_Init ************
 // Initialize the Fifo to be empty
 // Inputs: size
@@ -434,7 +446,7 @@ Sema4Type data_s;
 void OS_Fifo_Init(uint32_t size){
   // put Lab 2 (and beyond) solution here
 	osFifo_Init();
-  OS_InitSemaphore(&room_left, 8);
+  OS_InitSemaphore(&room_left, 2);
 	OS_InitSemaphore(&data_s, 0);
   
 };
@@ -600,7 +612,7 @@ uint32_t OS_MsTime(void){
 void OS_Launch(uint32_t theTimeSlice){
   // put Lab 2 (and beyond) solution here
 	SysTick_Init(theTimeSlice);
-	TIMER2_CTL_R = 0x00000001;    // 10) enable TIMER1A
+	//TIMER2_CTL_R = 0x00000001;    // 10) enable TIMER1A
 	RunPt = &tcbs[0];
   StartOS();                   // start on the first task     
 };
@@ -638,10 +650,27 @@ int OS_EndRedirectToFile(void){
   return 1;
 }
 
+void OS_jittermeasurement(uint32_t PERIOD, uint32_t* JitterHistogram, unsigned long* LastTime){
+	long jitter; 
+	uint32_t thisTime = OS_Time();
+	uint32_t diff = OS_TimeDifference(*LastTime,thisTime);
+      if(diff>PERIOD){
+        jitter = (diff-PERIOD+4)/8;  // in 0.1 usec
+      }else{
+        jitter = (PERIOD-diff+4)/8;  // in 0.1 usec
+      }
+      if(jitter > MaxJitter){
+        MaxJitter = jitter; // in usec
+      }       // jitter should be 0
+      if(jitter >= JitterSize){
+        jitter = JitterSize-1;
+      }
+      JitterHistogram[jitter]++; 
+}
 
-void EdgeCounterPortF_Init(void(*task)(void)){                          
+void EdgeCounterPortF4_Init(void(*task)(void)){                          
   SYSCTL_RCGCGPIO_R |= 0x00000020; // (a) activate clock for port F
-	GPIOHandlerFunction = task;
+	GPIOF4HandlerFunction = task;
   FallingEdges = 0;             // (b) initialize counter
   GPIO_PORTF_DIR_R &= ~0x10;    // (c) make PF4 in (built-in button)
   GPIO_PORTF_AFSEL_R &= ~0x10;  //     disable alt funct on PF4
@@ -658,3 +687,20 @@ void EdgeCounterPortF_Init(void(*task)(void)){
   NVIC_EN0_R = 0x40000000;      // (h) enable interrupt 30 in NVIC
 }
 
+void EdgeCounterPortF0_Init(void(*task)(void)){                          
+	GPIOF0HandlerFunction = task;
+  FallingEdges = 0;             // (b) initialize counter
+  GPIO_PORTF_DIR_R &= ~0x01;    // (c) make PF4 in (built-in button)
+  GPIO_PORTF_AFSEL_R &= ~0x01;  //     disable alt funct on PF4
+  GPIO_PORTF_DEN_R |= 0x01;     //     enable digital I/O on PF4   
+  GPIO_PORTF_PCTL_R &= ~0x0000000F; // configure PF4 as GPIO
+  GPIO_PORTF_AMSEL_R = 0;       //     disable analog functionality on PF
+  GPIO_PORTF_PUR_R |= 0x01;     //     enable weak pull-up on PF4
+  GPIO_PORTF_IS_R &= ~0x01;     // (d) PF4 is edge-sensitive
+  GPIO_PORTF_IBE_R &= ~0x01;    //     PF4 is not both edges
+  GPIO_PORTF_IEV_R &= ~0x01;    //     PF4 falling edge event
+  GPIO_PORTF_ICR_R = 0x01;      // (e) clear flag4
+  GPIO_PORTF_IM_R |= 0x01;      // (f) arm interrupt on PF4 *** No IME bit as mentioned in Book ***
+  NVIC_PRI7_R = (NVIC_PRI7_R&0xFF00FFFF)|0x00A00000; // (g) priority 5
+  NVIC_EN0_R = 0x40000000;      // (h) enable interrupt 30 in NVIC
+}

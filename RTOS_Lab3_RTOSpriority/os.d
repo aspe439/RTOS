@@ -3,7 +3,6 @@
 .\os.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 .\os.o: ..\RTOS_Labs_common\../inc/tm4c123gh6pm.h
 .\os.o: ..\RTOS_Labs_common\../inc/CortexM.h
-.\os.o: ..\RTOS_Labs_common\../inc/FIFO.h
 .\os.o: ..\RTOS_Labs_common\../inc/PLL.h
 .\os.o: ..\RTOS_Labs_common\../inc/LaunchPad.h
 .\os.o: ..\RTOS_Labs_common\../inc/Timer4A.h
@@ -13,5 +12,4 @@
 .\os.o: ..\RTOS_Labs_common\../inc/ADCT0ATrigger.h
 .\os.o: ..\RTOS_Labs_common\../RTOS_Labs_common/UART0int.h
 .\os.o: ..\RTOS_Labs_common\../RTOS_Labs_common/eFile.h
-.\os.o: ..\RTOS_Labs_common\../inc/Timer1A.h
-.\os.o: ..\RTOS_Labs_common\../inc/Timer2A.h
+.\os.o: ..\RTOS_Labs_common\../inc/Timer0A.h

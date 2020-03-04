@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include "../inc/tm4c123gh6pm.h"
 #include "../inc/CortexM.h"
-#include "../inc/FIFO.h"
 #include "../inc/PLL.h"
 #include "../inc/LaunchPad.h"
 #include "../inc/Timer4A.h"
@@ -21,8 +20,7 @@
 #include "../inc/ADCT0ATrigger.h"
 #include "../RTOS_Labs_common/UART0int.h"
 #include "../RTOS_Labs_common/eFile.h"
-#include "../inc/Timer1A.h"
-#include "../inc/Timer2A.h"
+#include "../inc/Timer0A.h"
 
 
 // Performance Measurements 
@@ -30,19 +28,14 @@ int32_t MaxJitter;             // largest time jitter between interrupts in usec
 #define JITTERSIZE 64
 uint32_t const JitterSize=JITTERSIZE;
 uint32_t JitterHistogram[JITTERSIZE]={0,};
-static uint32_t time = 0; // used to track system time
-
-extern void SW1Push(void);
-uint32_t FallingEdges = 0;
+static int time = 0; // used to track system time
 
 void OS_DisableInterrupts(void); // Disable interrupts
 void OS_EnableInterrupts(void);  // Enable interrupts
 void StartOS(void);
 void ContextSwitch(void);
-void EdgeCounterPortF_Init(void (*task)(void));
 
-
-#define NUMTHREADS  8        // maximum number of threads
+#define NUMTHREADS  4        // maximum number of threads
 #define STACKSIZE   128      // number of 32-bit words in stack
 extern uint32_t NumCreated;   // number of foreground threads created
 
@@ -51,10 +44,11 @@ extern uint32_t NumCreated;   // number of foreground threads created
 tcbType tcbs[NUMTHREADS];
 tcbType *RunPt;
 tcbType *NextPt;
-AddIndexFifo(os, 16, uint32_t, 1, 0)
+tcbType *PeriodPt;
+
+
 //tcbPtr RunPt;
 int32_t Stacks[NUMTHREADS][STACKSIZE];
-Sema4Type ST_sema;
 
 void SetInitialStack(int i){
   tcbs[i].sp = &Stacks[i][STACKSIZE-16]; // thread stack pointer. 16 words higher than the bottom of the stack
@@ -81,11 +75,9 @@ void SetInitialStack(int i){
   SysTick interrupt happens every 10 ms
   used for preemptive thread switch
  *------------------------------------------------------------------------------*/
-int foo1 = 0;
 void SysTick_Handler(void) {
 //	uint32_t status;
 //	status = StartCritical();
-	foo1++;
   OS_Suspend();
 //  EndCritical(status);
 } // end SysTick_Handler
@@ -105,7 +97,7 @@ void SysTick_Init(unsigned long period){
   NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
   NVIC_ST_RELOAD_R = period-1;// reload value
   NVIC_ST_CURRENT_R = 0;      // any write to current clears it
-  NVIC_SYS_PRI3_R = (NVIC_SYS_PRI3_R&0x00FFFFFF)|0xE0000000; // priority 7
+  NVIC_SYS_PRI3_R = (NVIC_SYS_PRI3_R&0x00FFFFFF)|0xE0000000; // priority 2
                               // enable SysTick with core clock and interrupts
   NVIC_ST_CTRL_R = 0x07;
 	NVIC_SYS_PRI3_R = (NVIC_SYS_PRI3_R&0xFF00FFFF)|0x00E00000; // PendSV Priority 7
@@ -122,22 +114,22 @@ void SysTick_Init(unsigned long period){
  * @brief  Initialize OS
  */
 void upcount(void){
-	long sr = StartCritical();
+	int32_t status;
+	status = StartCritical();
 	time++;
 	for (int i = 0; i< NUMTHREADS; i++){ //check sleeping threads, decrease their sleeping time
 		if(tcbs[i].SleepTime != 0){
 			tcbs[i].SleepTime--;
 		}
 	}
-	 EndCritical(sr);
+	EndCritical(status);
 }
 
 void OS_Init(void){
   // put Lab 2 (and beyond) solution here
   OS_DisableInterrupts();
   PLL_Init(Bus80MHz);         // set processor clock to 50 MHz //50 OR 80?
-	WideTimer0A_Init(&upcount, 80000, 0);//WideTimer used to keep track of system time
-	ST7735_InitR(INITR_REDTAB); // LCD initialization
+	WideTimer0A_Init(&upcount, 80000000/1000, 0);//WideTimer used to keep track of system time
 //  NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
 //  NVIC_ST_CURRENT_R = 0;      // any write to current clears it
 //  NVIC_SYS_PRI3_R =(NVIC_SYS_PRI3_R&0x00FFFFFF)|0xE0000000; // priority 7
@@ -160,14 +152,16 @@ void OS_InitSemaphore(Sema4Type *semaPt, int32_t value){
 // output: none
 void OS_Wait(Sema4Type *semaPt){
   // put Lab 2 (and beyond) solution here
-	long status = StartCritical();
-	semaPt->Value--;
-	if(semaPt < 0){
-		semaPt -> blocked[(semaPt->Value+1)*-1] = RunPt;
+	DisableInterrupts();
+
+
+	while(semaPt->Value <= 0){
+		EnableInterrupts();
+		DisableInterrupts();
 	}
-	RunPt ->Blocked = semaPt;
-	EndCritical(status);
-  OS_Suspend();
+	semaPt->Value--;
+	EnableInterrupts();
+  
 }; 
 
 // ******** OS_Signal ************
@@ -180,8 +174,6 @@ void OS_Signal(Sema4Type *semaPt){
   // put Lab 2 (and beyond) solution here
 	long status = StartCritical();
 		semaPt->Value += 1;
-		if(semaPt -> Value <= 0){
-		}
   EndCritical(status);
 }; 
 
@@ -250,14 +242,18 @@ int OS_AddThread(void(*task)(void),
 		}	
 		tcbs[i-1].next = &tcbs[i];
 		uint16_t k = i;
-		while((tcbs[k].Id == 0)&&(k != 0)){	//search for next assigned thread slot.
+		for(int l = 0; l<NUMTHREADS; l++){	//search for next assigned thread slot.
 			k++;
 			if(k >= NUMTHREADS){
 				k = 0;
 			}
+			if(tcbs[k].Id == 0){
+				tcbs[i].next = &tcbs[k];
+				tcbs[i].Id = i+1;
+				break;
+			}
 		}
-		tcbs[i].next = &tcbs[k];
-		tcbs[i].Id = i+1;
+		
 	}
 	
 	SetInitialStack(i); Stacks[i][STACKSIZE-2] = (int32_t)(task); // PC
@@ -295,20 +291,13 @@ uint32_t OS_Id(void){
 // In lab 3, this command will be called 0 1 or 2 times
 // In lab 3, there will be up to four background threads, and this priority field 
 //           determines the relative priority of these four threads
+
 int OS_AddPeriodicThread(void(*task)(void), 
    uint32_t period, uint32_t priority)
 {
-	static char count = 0;
-	if(count == 0){
-		 Timer2A_Init(task, period, priority);  // initialize timer2A (1000 Hz)
-		count = 1;
-	}
-	if(count == 1){
-		 Timer1A_Init(task, period, priority);
-	}
   // put Lab 2 (and beyond) solution here
- 
-  return 0;
+		Timer0A_Init(task, period,priority);  // initialize timer0A (2 Hz)
+
 };
 
 
@@ -318,13 +307,8 @@ int OS_AddPeriodicThread(void(*task)(void),
 /*----------------------------------------------------------------------------
   PF1 Interrupt Handler
  *----------------------------------------------------------------------------*/
-void  (*GPIOHandlerFunction)(void);
 void GPIOPortF_Handler(void){
-	long sr = StartCritical();
-	GPIO_PORTF_ICR_R = 0x10;      // acknowledge flag4
-  FallingEdges = FallingEdges + 1;
-	(*GPIOHandlerFunction)();
-	EndCritical(sr);
+ 
 }
 //******** OS_AddSW1Task *************** 
 // add a background task to run whenever the SW1 (PF4) button is pushed
@@ -341,7 +325,7 @@ void GPIOPortF_Handler(void){
 //           determines the relative priority of these four threads
 int OS_AddSW1Task(void(*task)(void), uint32_t priority){
   // put Lab 2 (and beyond) solution here
-	EdgeCounterPortF_Init(task);
+ 
   return 0; // replace this line with solution
 };
 
@@ -377,32 +361,27 @@ void OS_Sleep(uint32_t sleepTime){
 
 };  
 
-// ******** OS_Kill ************
+//******** OS_Kill ************
 // kill the currently running thread, release its TCB and stack
 // input:  none
 // output: none
-int foo = 0;
 void OS_Kill(void){
   // put Lab 2 (and beyond) solution here
-	long status = StartCritical();
+	DisableInterrupts();
 	uint32_t RunningThId = OS_Id();
-	int32_t i = RunningThId-1;
+	uint32_t k = 0;
 	tcbType* temp1 = &tcbs[RunningThId-1];
 	tcbType* temp2 = tcbs[RunningThId-1].next;//Store the next thread on linked list.
-	//temp1->next = 0;
-	uint32_t k = 0;
-	for(; k < NUMTHREADS;k++){
-		foo = 0;
+	for(;k < NUMTHREADS; k++){
 		if(tcbs[k].next == temp1){
-			foo = 1;
+			tcbs[k].next = temp2;		//Update the preceding item on linked list.
 			break;
 		}	
 	}
-	tcbs[k].next = temp2;		//Update the preceding item on linked list.
+	
 	NumCreated--;
 	temp1->Id = 0;
-	temp1->sp = &Stacks[RunningThId-1][STACKSIZE-1];//ready to release the stack.
-	EndCritical(status);   // end of atomic section .
+	EnableInterrupts();   // end of atomic section .
 	//Todo: where should I enable interrupt again?
 	OS_Suspend();
 	for(;;){};        // can not return
@@ -426,6 +405,7 @@ void OS_Suspend(void){
   ContextSwitch();
 	//UART_OutString("Switch DOne!\r\n");
 
+
 };
   
 // ******** OS_Fifo_Init ************
@@ -437,13 +417,9 @@ void OS_Suspend(void){
 // In Lab 3, you can put whatever restrictions you want on size
 //    e.g., 4 to 64 elements
 //    e.g., must be a power of 2,4,8,16,32,64,128
-Sema4Type room_left;
-Sema4Type data_s;
 void OS_Fifo_Init(uint32_t size){
   // put Lab 2 (and beyond) solution here
-	osFifo_Init();
-  OS_InitSemaphore(&room_left, 8);
-	OS_InitSemaphore(&data_s, 0);
+   
   
 };
 
@@ -457,21 +433,8 @@ void OS_Fifo_Init(uint32_t size){
 //  this function can not disable or enable interrupts
 int OS_Fifo_Put(uint32_t data){
   // put Lab 2 (and beyond) solution here
-		long status;
-		if(room_left.Value <= 0 ){
-			return 0;
-		}
-		else{
-			status = StartCritical();
-			room_left.Value --;
-			
-		  osFifo_Put(data);
-			data_s.Value++; 
-		}
-		
-		
-		EndCritical(status);
-    return 1; // replace this line with solution
+
+    return 0; // replace this line with solution
 };  
 
 // ******** OS_Fifo_Get ************
@@ -481,12 +444,8 @@ int OS_Fifo_Put(uint32_t data){
 // Outputs: data 
 uint32_t OS_Fifo_Get(void){
   // put Lab 2 (and beyond) solution here
-	OS_Wait(&data_s);
-	uint32_t FIFOout;
-	uint32_t temp = 0;
-	FIFOout = osFifo_Get(&temp);
-	OS_Signal(&room_left);	
-  return temp; // replace this line with solution
+  
+  return 0; // replace this line with solution
 };
 
 // ******** OS_Fifo_Size ************
@@ -507,13 +466,9 @@ int32_t OS_Fifo_Size(void){
 // Initialize communication channel
 // Inputs:  none
 // Outputs: none
-Sema4Type *insema;
-Sema4Type *outsema;
-uint32_t mailbox;
 void OS_MailBox_Init(void){
   // put Lab 2 (and beyond) solution here
-  OS_InitSemaphore(insema, 0);
-	OS_InitSemaphore(outsema, 0);
+  
 
   // put solution here
 };
@@ -527,9 +482,7 @@ void OS_MailBox_Init(void){
 void OS_MailBox_Send(uint32_t data){
   // put Lab 2 (and beyond) solution here
   // put solution here
-   OS_bWait(outsema);
-	 mailbox = data;
-	 OS_bSignal(insema);
+   
 
 };
 
@@ -541,9 +494,8 @@ void OS_MailBox_Send(uint32_t data){
 // It will spin/block if the MailBox is empty 
 uint32_t OS_MailBox_Recv(void){
   // put Lab 2 (and beyond) solution here
-	OS_bWait(insema);
-	OS_bSignal(outsema);
-  return mailbox; // replace this line with solution
+ 
+  return 0; // replace this line with solution
 };
 
 // ******** OS_Time ************
@@ -555,8 +507,8 @@ uint32_t OS_MailBox_Recv(void){
 //   this function and OS_TimeDifference have the same resolution and precision 
 uint32_t OS_Time(void){
   // put Lab 2 (and beyond) solution here
-	
-  return time * 80000 + (80000 - WTIMER0_TAR_R); // replace this line with solution
+
+  return 0; // replace this line with solution
 };
 
 // ******** OS_TimeDifference ************
@@ -569,7 +521,7 @@ uint32_t OS_Time(void){
 uint32_t OS_TimeDifference(uint32_t start, uint32_t stop){
   // put Lab 2 (and beyond) solution here
 
-  return (stop -start); // replace this line with solution
+  return 0; // replace this line with solution
 };
 
 
@@ -580,7 +532,7 @@ uint32_t OS_TimeDifference(uint32_t start, uint32_t stop){
 // You are free to change how this works
 
 void OS_ClearMsTime(void){
-	
+
   // put Lab 1 solution here
 	time = 0; //initialized when OS gets initilized
 };
@@ -608,7 +560,6 @@ uint32_t OS_MsTime(void){
 void OS_Launch(uint32_t theTimeSlice){
   // put Lab 2 (and beyond) solution here
 	SysTick_Init(theTimeSlice);
-	TIMER2_CTL_R = 0x00000001;    // 10) enable TIMER1A
 	RunPt = &tcbs[0];
   StartOS();                   // start on the first task     
 };
@@ -645,24 +596,3 @@ int OS_EndRedirectToFile(void){
   
   return 1;
 }
-
-
-void EdgeCounterPortF_Init(void(*task)(void)){                          
-  SYSCTL_RCGCGPIO_R |= 0x00000020; // (a) activate clock for port F
-	GPIOHandlerFunction = task;
-  FallingEdges = 0;             // (b) initialize counter
-  GPIO_PORTF_DIR_R &= ~0x10;    // (c) make PF4 in (built-in button)
-  GPIO_PORTF_AFSEL_R &= ~0x10;  //     disable alt funct on PF4
-  GPIO_PORTF_DEN_R |= 0x10;     //     enable digital I/O on PF4   
-  GPIO_PORTF_PCTL_R &= ~0x000F0000; // configure PF4 as GPIO
-  GPIO_PORTF_AMSEL_R = 0;       //     disable analog functionality on PF
-  GPIO_PORTF_PUR_R |= 0x10;     //     enable weak pull-up on PF4
-  GPIO_PORTF_IS_R &= ~0x10;     // (d) PF4 is edge-sensitive
-  GPIO_PORTF_IBE_R &= ~0x10;    //     PF4 is not both edges
-  GPIO_PORTF_IEV_R &= ~0x10;    //     PF4 falling edge event
-  GPIO_PORTF_ICR_R = 0x10;      // (e) clear flag4
-  GPIO_PORTF_IM_R |= 0x10;      // (f) arm interrupt on PF4 *** No IME bit as mentioned in Book ***
-  NVIC_PRI7_R = (NVIC_PRI7_R&0xFF00FFFF)|0x00A00000; // (g) priority 5
-  NVIC_EN0_R = 0x40000000;      // (h) enable interrupt 30 in NVIC
-}
-

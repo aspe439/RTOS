@@ -19,7 +19,16 @@ static char things[50] = {0};
 // Print jitter histogram
 void Jitter(int32_t MaxJitter, uint32_t const JitterSize, uint32_t JitterHistogram[]){
   // write this for Lab 3 (the latest)
-	
+	UART_OutString("\r\nMaxJitter\n\r");
+	UART_OutUDec(MaxJitter);
+	UART_OutString("\r\nJitterHistogram:\n\r");
+	for(uint32_t i=0;i<JitterSize;i++){
+		UART_OutString("\r\nJitter in 0.1 usec: ");
+		UART_OutUDec(i);
+		UART_OutString("\r\nFrequency: ");
+		UART_OutUDec(JitterHistogram[i]);
+	}
+	UART_OutString("\r\nJitterHistogram:\n\r");
 }
 extern uint32_t MaxJitter;   // number of foreground threads created
 extern uint32_t DataLost;      // current number of PID calculations finished
@@ -28,20 +37,20 @@ extern uint32_t NumSamples;   // incremented every ADC sample, in Producer
 // *********** Command line interpreter (shell) ************
 void Interpreter(void){ 
   // write this  
-	
-	UART_InString(&things[0], 50); //buffer to store input string
-	if(strcmp(things, "Performance") == 0){
-		UART_OutString("\r\nMaxJitter\n\r");
-		UART_OutUDec(MaxJitter);
-		UART_OutString("\r\nDataLost\n\r");
-		UART_OutUDec(DataLost);
-		UART_OutString("\r\nFilterWork\n\r");
-		UART_OutUDec(FilterWork);
-		UART_OutString("\r\nNumSamples\n\r");
-		UART_OutUDec(NumSamples);
-	}
-	things[0] = '\0'; //clears the command buffer
-	
+	while(1){
+//	UART_InString(&things[0], 50); //buffer to store input string
+//	if(strcmp(things, "Performance") == 0){
+//		UART_OutString("\r\nMaxJitter\n\r");
+//		UART_OutUDec(MaxJitter);
+//		UART_OutString("\r\nDataLost\n\r");
+//		UART_OutUDec(DataLost);
+//		UART_OutString("\r\nFilterWork\n\r");
+//		UART_OutUDec(FilterWork);
+//		UART_OutString("\r\nNumSamples\n\r");
+//		UART_OutUDec(NumSamples);
+//	}
+//	things[0] = '\0'; //clears the command buffer
+}
 //	if(strcmp(things, "-help") == 0){ //help promp
 //		UART_OutString("List of possible command: \r\n\
 //-clr to clear the terminal\r\n\

@@ -1409,10 +1409,11 @@ void ST7735_OutUDec2(uint32_t n, uint32_t l){
 //        line    row from top, 0 to 7 for each device
 //        pt      pointer to a null terminated string to be printed
 //        value   signed integer to be printed
+extern Sema4Type STsema;
 void ST7735_Message(uint32_t  d, uint32_t  l, char *pt, int32_t value){
   // write this as part of Labs 1 and 2
-	long status = StartCritical();
-	
+	//long status = StartCritical();
+  OS_bWait(&STsema);
 	int length;	
 	char* neg = "-";
   if(d == 0){ // top
@@ -1439,7 +1440,8 @@ void ST7735_Message(uint32_t  d, uint32_t  l, char *pt, int32_t value){
 	}
 	ST7735_SetCursor(length, l); //move the cursor to next empty position
 	ST7735_OutUDec(value);	//draw the numbers on scree
-	EndCritical(status);
+	OS_bSignal(&STsema);
+//EndCritical(status);
 }
 
 //-----------------------ST7735_OutUDec4-----------------------

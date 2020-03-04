@@ -71,8 +71,11 @@ uint32_t CPUUtil;       // calculated CPU utilization (in 0.01%)
 //---------------------User debugging-----------------------
 uint32_t DataLost;     // data sent by Producer, but not received by Consumer
 extern int32_t MaxJitter;             // largest time jitter between interrupts in usec
+extern int32_t MaxJitter2;             // largest time jitter between interrupts in usec
 extern uint32_t const JitterSize;
 extern uint32_t JitterHistogram[];
+extern uint32_t JitterHistogram2[];
+extern void OS_jittermeasurement(uint32_t, uint32_t* JitterHistogram, unsigned long* LastTime);
 
 #define PD0  (*((volatile uint32_t *)0x40007004))
 #define PD1  (*((volatile uint32_t *)0x40007008))
@@ -104,12 +107,20 @@ void PortD_Init(void){
 uint32_t DASoutput;
 void DAS(void){ 
   uint32_t input;  
+	unsigned static long LastTime;  // time at previous ADC sample
+  uint32_t thisTime;              // time at current ADC sample
+  long jitter;                    // time between measured and expected, in us
+	
   if(NumSamples < RUNLENGTH){   // finite time run
     PD0 ^= 0x01;
     input = ADC_In();           // channel set when calling ADC_Init
     PD0 ^= 0x01;
     DASoutput = Filter(input);
     FilterWork++;        // calculation finished
+		if(FilterWork>1){    // ignore timing of first interrupt
+      OS_jittermeasurement(PERIOD1,JitterHistogram, &LastTime);
+    }
+    LastTime = thisTime;
     PD0 ^= 0x01;
   }
 }
@@ -122,6 +133,7 @@ void DAS(void){
 // foreground treads run for 2 sec and die
 
 // ***********ButtonWork*************
+Sema4Type	STsema;
 void ButtonWork(void){
   uint32_t myId = OS_Id(); 
   PD1 ^= 0x02;
@@ -255,9 +267,11 @@ short Coeff[3] = { // PID coefficients
 short Actuator;
 void PID(void){ 
   static short err = -1000;  // speed error, range -100 to 100 RPM
+	static unsigned long LastTime = 0;
   Actuator = PID_stm32(err,Coeff)/256;
   err++; 
   if(err > 1000) err = -1000; // made-up data
+	OS_jittermeasurement(PERIOD2, JitterHistogram2, &LastTime);
   PIDWork++;
 }
 
@@ -662,6 +676,9 @@ void Thread7(void){  // foreground thread
 #define workA 500       // {5,50,500 us} work in Task A
 #define counts1us 10    // number of OS_Time counts per 1us
 void TaskA(void){       // called every {1000, 2990us} in background
+	unsigned static long LastTime = 0;  // time at previous ADC sample
+  uint32_t thisTime;              // time at current ADC sample
+	OS_jittermeasurement(TIME_1MS,JitterHistogram, &LastTime);
   PD1 = 0x02;      // debugging profile  
   CountA++;
   PseudoWork(workA*counts1us); //  do work (100ns time resolution)
@@ -858,5 +875,6 @@ int TestmainFIFO(void){   // TestmainFIFO
 
 //*******************Trampoline for selecting main to execute**********
 int main(void) { 			// main 
+	OS_InitSemaphore(&STsema,1);
   realmain();
 }

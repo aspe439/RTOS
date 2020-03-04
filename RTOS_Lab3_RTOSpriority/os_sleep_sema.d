@@ -1,0 +1,17 @@
+.\os_sleep_sema.o: OS_sleep_sema.c
+.\os_sleep_sema.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\os_sleep_sema.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\os_sleep_sema.o: ../inc/tm4c123gh6pm.h
+.\os_sleep_sema.o: ../inc/CortexM.h
+.\os_sleep_sema.o: ../inc/FIFO.h
+.\os_sleep_sema.o: ../inc/PLL.h
+.\os_sleep_sema.o: ../inc/LaunchPad.h
+.\os_sleep_sema.o: ../inc/Timer4A.h
+.\os_sleep_sema.o: ../inc/WTimer0A.h
+.\os_sleep_sema.o: ../RTOS_Labs_common/OS.h
+.\os_sleep_sema.o: ../RTOS_Labs_common/ST7735.h
+.\os_sleep_sema.o: ../inc/ADCT0ATrigger.h
+.\os_sleep_sema.o: ../RTOS_Labs_common/UART0int.h
+.\os_sleep_sema.o: ../RTOS_Labs_common/eFile.h
+.\os_sleep_sema.o: ../inc/Timer1A.h
+.\os_sleep_sema.o: ../inc/Timer2A.h
