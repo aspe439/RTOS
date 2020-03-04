@@ -160,16 +160,14 @@ void OS_InitSemaphore(Sema4Type *semaPt, int32_t value){
 // output: none
 void OS_Wait(Sema4Type *semaPt){
   // put Lab 2 (and beyond) solution here
-	DisableInterrupts();
-
-
-	while(semaPt->Value <= 0){
-		EnableInterrupts();
-		DisableInterrupts();
-	}
+	long status = StartCritical();
 	semaPt->Value--;
-	EnableInterrupts();
-  
+	if(semaPt < 0){
+		semaPt -> blocked[(semaPt->Value+1)*-1] = RunPt;
+	}
+	RunPt ->Blocked = semaPt;
+	EndCritical(status);
+  OS_Suspend();
 }; 
 
 // ******** OS_Signal ************
@@ -182,6 +180,8 @@ void OS_Signal(Sema4Type *semaPt){
   // put Lab 2 (and beyond) solution here
 	long status = StartCritical();
 		semaPt->Value += 1;
+		if(semaPt -> Value <= 0){
+		}
   EndCritical(status);
 }; 
 
@@ -298,8 +298,16 @@ uint32_t OS_Id(void){
 int OS_AddPeriodicThread(void(*task)(void), 
    uint32_t period, uint32_t priority)
 {
+	static char count = 0;
+	if(count == 0){
+		 Timer2A_Init(task, period, priority);  // initialize timer2A (1000 Hz)
+		count = 1;
+	}
+	if(count == 1){
+		 Timer1A_Init(task, period, priority);
+	}
   // put Lab 2 (and beyond) solution here
-  Timer2A_Init(task, period, priority);  // initialize timer0A (2 Hz)
+ 
   return 0;
 };
 
