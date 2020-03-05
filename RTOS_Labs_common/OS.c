@@ -141,6 +141,7 @@ void OS_Init(void){
   // put Lab 2 (and beyond) solution here
   OS_DisableInterrupts();
   PLL_Init(Bus80MHz);         // set processor clock to 50 MHz //50 OR 80?
+	UART_Init();
 	WideTimer0A_Init(&upcount, 80000, 0);//WideTimer used to keep track of system time
 	ST7735_InitR(INITR_REDTAB); // LCD initialization
 //  NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
@@ -649,6 +650,8 @@ void OS_Launch(uint32_t theTimeSlice){
   // put Lab 2 (and beyond) solution here
 	SysTick_Init(theTimeSlice);
 	TIMER2_CTL_R = 0x00000001;    // 10) enable TIMER1A
+	TIMER1_CTL_R = 0x00000001;    // 10) enable TIMER1A
+
 	RunPt = &tcbs[0];
   StartOS();                   // start on the first task     
 };
@@ -688,7 +691,7 @@ int OS_EndRedirectToFile(void){
 
 
 void OS_jittermeasurement(uint32_t PERIOD, uint32_t* JitterHistogram, unsigned long* LastTime){
-	long jitter; 
+	unsigned long jitter; 
 	uint32_t thisTime = OS_Time();
 	uint32_t diff = OS_TimeDifference(*LastTime,thisTime);
       if(diff>PERIOD){
@@ -703,6 +706,7 @@ void OS_jittermeasurement(uint32_t PERIOD, uint32_t* JitterHistogram, unsigned l
         jitter = JitterSize-1;
       }
       JitterHistogram[jitter]++; 
+	*LastTime = thisTime; 
 }
 
 void EdgeCounterPortF4_Init(void(*task)(void)){                          

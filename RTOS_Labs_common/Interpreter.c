@@ -19,6 +19,7 @@ static char things[50] = {0};
 // Print jitter histogram
 void Jitter(int32_t MaxJitter, uint32_t const JitterSize, uint32_t JitterHistogram[]){
   // write this for Lab 3 (the latest)
+	UART_OutString("\033[2J\033[;H\33[0m");	
 	UART_OutString("\r\nMaxJitter\n\r");
 	UART_OutUDec(MaxJitter);
 	UART_OutString("\r\nJitterHistogram:\n\r");

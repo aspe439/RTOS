@@ -673,7 +673,7 @@ void Thread7(void){  // foreground thread
   UART_OutString("\n\r\n\r");
   OS_Kill();
 }
-#define workA 500       // {5,50,500 us} work in Task A
+#define workA 5       // {5,50,500 us} work in Task A
 #define counts1us 10    // number of OS_Time counts per 1us
 void TaskA(void){       // called every {1000, 2990us} in background
 	unsigned static long LastTime = 0;  // time at previous ADC sample
@@ -698,7 +698,7 @@ int Testmain6(void){       // Testmain6 Lab 3
   NumCreated = 0 ;
   NumCreated += OS_AddThread(&Thread7,128,1); 
   NumCreated += OS_AddThread(&Thread6,128,2); 
-  OS_AddPeriodicThread(&TaskA,TIME_1MS,0);           // 1 ms, higher priority
+  OS_AddPeriodicThread(&TaskA,2.99*TIME_1MS,0);           // 1 ms, higher priority
   OS_AddPeriodicThread(&TaskB,2*TIME_1MS,1);         // 2 ms, lower priority
  
   OS_Launch(TIME_2MS); // 2ms, doesn't return, interrupts enabled in here

@@ -1,6 +1,0 @@
---cpu Cortex-M4 --pd "__EVAL SETA 1" -g --apcs=interwork --pd "__MICROLIB SETA 1"
--I.\RTE\_Lab3
--IC:\Users\Zhen\AppData\Local\Arm\Packs\ARM\CMSIS\5.6.0\CMSIS\Core\Include
--IC:\Users\Zhen\AppData\Local\Arm\Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123
---pd "__UVISION_VERSION SETA 529" --pd "_RTE_ SETA 1" --pd "TM4C123GH6PM SETA 1"
---list .\pid_stm32.lst --xref -o .\pid_stm32.o --depend .\pid_stm32.d "..\inc\PID_stm32.s"
