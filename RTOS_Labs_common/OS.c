@@ -181,14 +181,17 @@ void OS_Wait(Sema4Type *semaPt){
 	ls *temp = semaPt->blocked;
 	if(semaPt->Value < 0){
 		int i = 0; 
-		while(temp->next!=NULL){// temp is the last item in the wait queue
-			if(temp->pointer == RunPt){
-				semaPt ->Value++;
-				EndCritical(status);
-				OS_Suspend();
-				return;
+		if(temp){
+			while(temp->next){// temp is the last item in the wait queue
+				
+				if(temp->pointer == RunPt){
+					semaPt ->Value++;
+					EndCritical(status);
+					OS_Suspend();
+					return;
+				}
+				temp = temp->next;
 			}
-			temp = temp->next;
 		}
 		for( ;i< NUMTHREADS; i++){ // find a empty spot to put the next item in the linked list queue
 			if(semals[semaPt->count][i].pointer == NULL){
@@ -221,10 +224,11 @@ void OS_Signal(Sema4Type *semaPt){
 		if(semaPt -> Value <= 0){
 			semaPt->blocked->pointer->Blocked = 0;
 			semaPt->blocked->pointer = NULL;//mark this node as unused
-			semaPt->blocked->next = NULL;
+			
 			if(semaPt -> Value <=-1){// if another thread is still blocked.
 				semaPt->blocked = semaPt->blocked->next;
 			}
+			semaPt->blocked->next = NULL;
 		}
   EndCritical(status);
 }; 

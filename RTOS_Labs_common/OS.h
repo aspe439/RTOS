@@ -52,7 +52,7 @@ struct linked_list{
 struct  Sema4{
   //char Value;   // >0 means free, otherwise means busy
 	int32_t Value;   // >0 means free, otherwise means busy
-	ls *blocked;
+	ls *blocked;  //header of queue of tcbs to be unblocked.
 	unsigned char count;
 // add other components here, if necessary to implement blocking
 };
