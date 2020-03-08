@@ -50,7 +50,8 @@ struct linked_list{
 };
 
 struct  Sema4{
-  char Value;   // >0 means free, otherwise means busy
+  //char Value;   // >0 means free, otherwise means busy
+	int32_t Value;   // >0 means free, otherwise means busy
 	ls *blocked;
 	unsigned char count;
 // add other components here, if necessary to implement blocking

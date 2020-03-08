@@ -876,5 +876,5 @@ int TestmainFIFO(void){   // TestmainFIFO
 //*******************Trampoline for selecting main to execute**********
 int main(void) { 			// main 
 	OS_InitSemaphore(&STsema,1);
-  Testmain6();
+  Testmain7();
 }

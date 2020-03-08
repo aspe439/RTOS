@@ -182,6 +182,10 @@ void OS_Wait(Sema4Type *semaPt){
 	if(semaPt->Value < 0){
 		int i = 0; 
 		while(temp->next!=NULL){// temp is the last item in the wait queue
+			if(temp->pointer == RunPt){
+				semaPt ->Value++;
+				return;
+			}
 			temp = temp->next;
 		}
 		for( ;i< NUMTHREADS; i++){ // find a empty spot to put the next item in the linked list queue
@@ -460,7 +464,7 @@ void OS_Kill(void){
 void OS_Suspend(void){
   // put Lab 2 (and beyond) solution here
 	NextPt = RunPt->next;
-	while(NextPt->SleepTime!=0){
+	while((NextPt->SleepTime!=0)||(NextPt->Blocked==1)){
 		NextPt = NextPt -> next; //loop through the list until an active task is found
 	}
 	//UART_OutString("Switch!\r\n");
@@ -651,7 +655,6 @@ void OS_Launch(uint32_t theTimeSlice){
 	SysTick_Init(theTimeSlice);
 	TIMER2_CTL_R = 0x00000001;    // 10) enable TIMER1A
 	TIMER1_CTL_R = 0x00000001;    // 10) enable TIMER1A
-
 	RunPt = &tcbs[0];
   StartOS();                   // start on the first task     
 };
